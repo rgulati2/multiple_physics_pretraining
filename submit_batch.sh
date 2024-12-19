@@ -3,15 +3,16 @@
 #SBATCH --partition=gpu
 #SBATCH --nodes=1                                                                                                                                                                    
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=2                                                                                                                                                                
-#SBATCH --cpus-per-gpu=8 
+#SBATCH --gpus-per-task=1
+#SBATCH --gres=gpu:A40:1
+#SBATCH --gpus-per-node=1                                                                                                                                                                 
 #SBATCH --job-name="demo"
 #SBATCH --output="test.%j.out"
 #SBATCH --account=garikipa_1359
 #SBATCH --export=ALL
-#SBATCH --exclude=a02-15
 #SBATCH --open-mode=append
-#SBATCH --mem=32G                                                                                                                                                                 
+#SBATCH --mem=16G
+
 
 eval "$(conda shell.bash hook)"
 conda activate MPP3
