@@ -6,13 +6,14 @@ basic_config: &basic_config
   checkpoint_save_interval: 10 # Save every # epochs - also saves "best" according to val loss
   debug_grad: !!bool True # Compute gradient/step_sizes/ect for debugging
   true_time: !!bool False # Debugging setting - sets num workers to zero and activates syncs
-  num_data_workers: 6 # Generally pulling 8 cpu per process, so using 6 for DL - not sure if best ratio
+  num_data_workers: 1 # Generally pulling 8 cpu per process, so using 6 for DL - not sure if best ratio
   enable_amp: !!bool False # Use automatic mixed precision - blows up with low variance fields right now
   compile: !!bool False # Compile model - Does not currently work
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
   pretrained: !!bool False # Whether to load a pretrained model
+  #pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   # wandb settings
   project: 'project' 
   group: 'debugging'
@@ -20,7 +21,7 @@ basic_config: &basic_config
   # Training settings
   drop_path: 0.1
   batch_size: 1
-  max_epochs: 5
+  max_epochs: 1
   scheduler_epochs: -1
   epoch_size: 2000 # Artificial epoch size
   rescale_gradients: !!bool False # Activate hook that scales block gradients to norm 1
@@ -73,25 +74,26 @@ basic_config: &basic_config
               ]
   append_datasets: [] # List of datasets to append to the input/output projections for finetuning
 
-
 finetune: &finetune
   <<: *basic_config
-  max_epochs: 500
+  max_epochs: 1
   train_val_test: [.8, .1, .1]
   accum_grad: 1
   pretrained: !!bool True
   group: 'debugging'
-  pretrained_ckpt_path: '/B16-noNS/training_checkpoints/ckpt.tar'
+  pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   train_data_paths: [
-              ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
+#              ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
+	       ['~/PDEBench/2D', 'diffre2d', ''],
               ]
   valid_data_paths: [  # These are the same for all configs - uses split according to train_val_test
-               ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
+  		    ['~/PDEBench/2D', 'diffre2d', ''],
+#               ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
               ]
   embedding_offset: 0 # Number of fields in original model - FT fields start after this
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  append_datasets: [] # List of datasets to append to the input/output projections for finetuning
+  append_datasets: [ ] # List of datasets to append to the input/output projections for finetuning
   
 
 frozen: &frozen

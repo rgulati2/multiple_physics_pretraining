@@ -3,12 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#PDFs
+*.pdf 
+
+#weights 
+weights/
+
+#Runs
+~/
+
 # C extensions
 *.so
 
 #Dataset
 *~
 *.out
+*.out*
 # Distribution / packaging
 .Python
 build/

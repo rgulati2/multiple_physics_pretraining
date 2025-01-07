@@ -3,7 +3,7 @@
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-task=1
+#SBATCH --gpus-per-task=a40:1
 #SBATCH --job-name="demo"
 #SBATCH --output="MPP.%j.out"
 #SBATCH --account=garikipa_1359
