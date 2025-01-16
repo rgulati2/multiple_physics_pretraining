@@ -194,7 +194,75 @@ class Trainer:
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
 
+    def save_simulation_snapshots(x, save_dir="plots"):
+        """
+        Saves the simulation snapshots in x as a single image file.
+        
+        Args:
+        x (torch.Tensor or np.ndarray): Tensor of shape (16, 2, 128, 128).
+        save_dir (str): Directory where the plot will be saved.
+        """
+        # Ensure x is a NumPy array for plotting
+        if isinstance(x, torch.Tensor):
+            x = x.cpu().numpy()
+            
+        num_snapshots = x.shape[0]
+        num_channels = x.shape[1]
+        assert num_channels == 2, "Expected 2 variables per snapshot."
 
+        # Create the save directory if it doesn't exist
+        os.makedirs(save_dir, exist_ok=True)
+
+        # Create subplots
+        fig, axes = plt.subplots(num_snapshots, num_channels,figsize=(num_channels * 5, num_snapshots * 5))
+    
+        # Adjust for a single snapshot case
+        if num_snapshots == 1:
+            axes = np.expand_dims(axes, axis=0)
+    
+        # Plot each snapshot
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                ax = axes[i, j]
+                im = ax.imshow(x[i, j], cmap='viridis', origin='lower')
+                ax.set_title(f"Snapshot {i+1}, Variable {j+1}")
+                plt.colorbar(im, ax=ax)
+                ax.axis('off')
+
+        plt.tight_layout()
+
+        # Save the figure
+        save_path = os.path.join(save_dir, "simulation_snapshots.png")
+        plt.savefig(save_path, dpi=300)
+        plt.close(fig)  # Close the figure to avoid memory issues on the cluster
+        
+        print(f"Plot saved to {save_path}")
+
+    def save_snapshots(self, x, save_dir):
+        """
+        Save simulation snapshots.
+        
+        Args:
+        x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        save_dir (str): Directory where snapshots will be saved.
+        """
+        x = x.squeeze(1) 
+        num_snapshots = x.shape[0]
+        num_channels = x.shape[1]
+        print(f"x.shape: {x.shape}")
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                plt.figure(figsize=(6, 6))
+                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
+                variable_slice = x[i, j]  # Shape should now be (128, 128)
+                print(f"Shape of variable_slice: {variable_slice.shape}")
+                plt.imshow(variable_slice, cmap="viridis", origin="lower")
+                plt.title(f"Snapshot {i+1}, Variable {j+1}")
+                plt.colorbar()
+                plt.axis("off")
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
+                plt.savefig(filename, dpi=300)
+                plt.close()
         
     def rollout_comp(self, model, dset, state_labels, ic_index, steps, device):
         
@@ -204,14 +272,20 @@ class Trainer:
         model.to(device)
         with torch.no_grad():
             x, bcs, y = dset[ic_index]
-            # print(x.shape, bcs, y.shape)
+            print("x.shape=",x.shape,"bcs=",bcs,"y.shape=",y.shape)
             targets = [torch.as_tensor(y)]
             preds = []
             nrmse_pred = []
             nrmse_pers = []
             xpers = torch.as_tensor(x[-1])
+            #self.save_simulation_snapshots(x)
             x = torch.as_tensor(x).to(device).unsqueeze(1) #transpose(0, 1)
             bcs = torch.as_tensor(bcs).unsqueeze(0).to(device)
+
+            save_dir="plots"
+            os.makedirs(save_dir, exist_ok=True)
+            self.save_snapshots(x.cpu(), save_dir)
+            
             for i in range(1, steps+1):
                 # print(x.shape, state_labels.shape, bcs.shape)
                 print(x.shape, state_labels.shape, bcs.shape)
