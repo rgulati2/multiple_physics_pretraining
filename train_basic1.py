@@ -21,6 +21,7 @@ import gc
 from torchinfo import summary
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import pyvista as pv
 try:
     from data_utils.datasets import get_data_loader, DSET_NAME_TO_OBJECT
     from models.avit import build_avit
@@ -168,15 +169,11 @@ class Trainer:
 
     def normalized_rooted_mse(self, y_true, y_pred, norm_type):
         """
-        Normalized Root Mean Squared Error (NRMSE) in PyTorch.
-    
         Args:
         y_true (torch.Tensor): Ground truth values.
         y_pred (torch.Tensor): Predicted values.
         norm_type (str): Normalization type ('minmax' or 'meanstd').
-    
-        Returns:
-        torch.Tensor: NRMSE value.
+        Returns: torch.Tensor: NRMSE value.
         """
         mse = torch.mean((y_true - y_pred) ** 2)
         rmse = torch.sqrt(mse)
@@ -187,75 +184,23 @@ class Trainer:
             norm_factor = y_true.std()
         else:
             raise ValueError("Invalid norm_type. Choose 'minmax' or 'meanstd'.")
-
         nrmse = rmse / (norm_factor + 1e-8)  # Adding small epsilon for numerical stability
         return nrmse
         
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
 
-    def save_simulation_snapshots(x, save_dir="plots"):
-        """
-        Saves the simulation snapshots in x as a single image file.
-        
-        Args:
-        x (torch.Tensor or np.ndarray): Tensor of shape (16, 2, 128, 128).
-        save_dir (str): Directory where the plot will be saved.
-        """
-        # Ensure x is a NumPy array for plotting
-        if isinstance(x, torch.Tensor):
-            x = x.cpu().numpy()
-            
-        num_snapshots = x.shape[0]
-        num_channels = x.shape[1]
-        assert num_channels == 2, "Expected 2 variables per snapshot."
-
-        # Create the save directory if it doesn't exist
-        os.makedirs(save_dir, exist_ok=True)
-
-        # Create subplots
-        fig, axes = plt.subplots(num_snapshots, num_channels,figsize=(num_channels * 5, num_snapshots * 5))
-    
-        # Adjust for a single snapshot case
-        if num_snapshots == 1:
-            axes = np.expand_dims(axes, axis=0)
-    
-        # Plot each snapshot
-        for i in range(num_snapshots):
-            for j in range(num_channels):
-                ax = axes[i, j]
-                im = ax.imshow(x[i, j], cmap='viridis', origin='lower')
-                ax.set_title(f"Snapshot {i+1}, Variable {j+1}")
-                plt.colorbar(im, ax=ax)
-                ax.axis('off')
-
-        plt.tight_layout()
-
-        # Save the figure
-        save_path = os.path.join(save_dir, "simulation_snapshots.png")
-        plt.savefig(save_path, dpi=300)
-        plt.close(fig)  # Close the figure to avoid memory issues on the cluster
-        
-        print(f"Plot saved to {save_path}")
-
     def save_snapshots(self, x, save_dir):
-        """
-        Save simulation snapshots.
-        
-        Args:
-        x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
-        save_dir (str): Directory where snapshots will be saved.
-        """
         x = x.squeeze(1) 
         num_snapshots = x.shape[0]
         num_channels = x.shape[1]
-        print(f"x.shape: {x.shape}")
+        #print(f"x.shape: {x.shape}")
         for i in range(num_snapshots):
             for j in range(num_channels):
                 plt.figure(figsize=(6, 6))
                 #plt.imshow(x[i, j], cmap="viridis", origin="lower")
-                variable_slice = x[i, j]  # Shape should now be (128, 128)
-                print(f"Shape of variable_slice: {variable_slice.shape}")
+                variable_slice = x[i, j]  # Shape should be (128, 128)
+                #print(f"Shape of variable_slice: {variable_slice.shape}")
                 plt.imshow(variable_slice, cmap="viridis", origin="lower")
                 plt.title(f"Snapshot {i+1}, Variable {j+1}")
                 plt.colorbar()
@@ -263,7 +208,37 @@ class Trainer:
                 filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
                 plt.savefig(filename, dpi=300)
                 plt.close()
-        
+
+    def save_snapshots_vtk(self, x, save_dir):
+        x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        #prinr("x.shape=",x.shape)
+        num_snapshots, num_channels, nx, ny = x.shape
+        #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
+
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                variable_slice = x[i, j].cpu().numpy()  # Convert to numpy array, shape (128, 128)
+                #print(f"variable_slice.shape before flattening: {variable_slice.shape}")
+
+                if variable_slice.size != nx * ny:
+                    print(f"Warning: Mismatch in size for snapshot {i+1}, variable {j+1}.")
+                    print(f"Expected size: {nx * ny}, Actual size: {variable_slice.size}")
+                    variable_slice = variable_slice.flatten(order="F")  # Flatten in column-major order if needed
+
+                grid = pv.StructuredGrid()            
+                x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx+1, endpoint=True), np.linspace(0, ny , ny+1, endpoint=True), indexing='ij')
+                z_grid = np.zeros_like(x_grid)  # Single plane (for 2D data)
+                points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+            
+                grid.points = points
+                grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
+                #print("grid dimensions=",grid.dimensions)
+                grid.cell_data["Variable"] = variable_slice.ravel(order="F")
+
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
+                grid.save(filename)
+                #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
+                
     def rollout_comp(self, model, dset, state_labels, ic_index, steps, device):
         
         if not model:
@@ -278,13 +253,16 @@ class Trainer:
             nrmse_pred = []
             nrmse_pers = []
             xpers = torch.as_tensor(x[-1])
-            #self.save_simulation_snapshots(x)
             x = torch.as_tensor(x).to(device).unsqueeze(1) #transpose(0, 1)
             bcs = torch.as_tensor(bcs).unsqueeze(0).to(device)
 
             save_dir="plots"
             os.makedirs(save_dir, exist_ok=True)
             self.save_snapshots(x.cpu(), save_dir)
+
+            save_dir = "vtk_snapshots"
+            os.makedirs(save_dir, exist_ok=True)
+            self.save_snapshots_vtk(x, save_dir)
             
             for i in range(1, steps+1):
                 # print(x.shape, state_labels.shape, bcs.shape)

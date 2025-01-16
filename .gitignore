@@ -9,8 +9,9 @@ __pycache__/
 #weights 
 weights/
 
+#visualization folders
 plots
-
+vtk_snapshots
 #Runs
 ~/
 
