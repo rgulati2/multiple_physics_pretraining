@@ -247,7 +247,7 @@ class Trainer:
         model.to(device)
         with torch.no_grad():
             x, bcs, y = dset[ic_index]
-            print("x.shape=",x.shape,"bcs=",bcs,"y.shape=",y.shape)
+            #print("x.shape=",x.shape,"bcs=",bcs,"y.shape=",y.shape)
             targets = [torch.as_tensor(y)]
             preds = []
             nrmse_pred = []
@@ -265,9 +265,10 @@ class Trainer:
             self.save_snapshots_vtk(x, save_dir)
             
             for i in range(1, steps+1):
-                # print(x.shape, state_labels.shape, bcs.shape)
-                print(x.shape, state_labels.shape, bcs.shape)
+                #print(x.shape, state_labels.shape, bcs.shape)
+                #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
                 pred = model(x,  state_labels.to(device), bcs.to(device))
+                #print("Pred.shape=",pred.shape)
                 preds.append(pred.squeeze(0))
                 normtype = 'minmax'
                 nrmse_pred.append(self.normalized_rooted_mse(pred.to(device), targets[-1].to(device),normtype).cpu())
@@ -281,7 +282,7 @@ class Trainer:
     def forecast(self):
         k = 0
         subset = self.valid_dataset.sub_dsets[k]
-        print(subset.get_name(full_name=True))
+        #print(subset.get_name(full_name=True))
         device = self.device
         indices = torch.as_tensor(self.valid_dataset.subset_dict[subset.get_name()]).to(device).unsqueeze(0)
         model = self.model
@@ -358,6 +359,7 @@ class Trainer:
     def train_one_epoch(self):
         self.model.train()
         self.epoch += 1
+        #print("Epoch:",self.epoch)
         tr_time = 0
         data_time = 0
         data_start = time.time()
@@ -375,7 +377,13 @@ class Trainer:
         for batch_idx, data in enumerate(self.train_data_loader):
             steps += 1
             inp, file_index, field_labels, bcs, tar = map(lambda x: x.to(self.device), data) 
+            #print("inp.shape=",inp.shape)
+            #print("file_index=",file_index)
+            #print("field_labels=",field_labels)
+            #print("bcs=",bcs)
+            #print("tar.shape=",tar.shape)
             dset_type = self.train_dataset.sub_dsets[file_index[0]].type
+            #print("dest_type==",dset_type) #heat
             loss_counts[dset_type] += 1
             inp = rearrange(inp, 'b t c h w -> t b c h w')
             data_time += time.time() - data_start
@@ -385,7 +393,10 @@ class Trainer:
             with amp.autocast(self.params.enable_amp, dtype=self.mp_type):
                 model_start = time.time()
                 output = self.model(inp, field_labels, bcs)
+                #print("output.shape=",output.shape)
                 spatial_dims = tuple(range(output.ndim))[2:] # Assume 0, 1, 2 are T, B, C
+                #print("spatial_dims=",spatial_dims)
+                #print(f"Output shape: {output.shape}, Target shape: {tar.shape}")
                 residuals = output - tar
                 # Differentiate between log and accumulation losses
                 tar_norm = (1e-7 + tar.pow(2).mean(spatial_dims, keepdim=True))

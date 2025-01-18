@@ -12,7 +12,7 @@ basic_config: &basic_config
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
-  pretrained: !!bool True # Whether to load a pretrained model
+  pretrained: !!bool False # Whether to load a pretrained model
   pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B' #'~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
@@ -33,7 +33,7 @@ basic_config: &basic_config
   learning_rate: -1 # -1 means use DAdapt
   weight_decay: 1e-3 
   n_states: 12   # Number of state variables across the datasets - Can be larger than real number and things will just go unused
-  state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure', 'Temperature'] # Should be sorted
+  state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure'] # Should be sorted
   dt: 1 # Striding of data - Not currently implemented > 1
   n_steps: 16 # Length of history to include in input
   enforce_max_steps: !!bool False # If false and n_steps > dataset steps, use dataset steps. Otherwise, raise Exception.
@@ -57,7 +57,8 @@ basic_config: &basic_config
   extended_names: !!bool False # Whether to use extended names - not currently implemented
   embedding_offset: 0  # Use when adding extra finetuning fields
   train_data_paths: [
- ['~/PDEBench/2D', 'diffre2d', ''],
+ #['~/PDEBench/2D', 'diffre2d', ''],
+ ['~/CPG1', 'heat', ''],
 #              ['~/PDEBench/2D/shallow-water', 'swe', ''],
 #              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
 #              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
@@ -66,7 +67,8 @@ basic_config: &basic_config
 #              ['~/PDEBench/2D/diffusion-reaction', 'diffre2d', ''],
               ]
   valid_data_paths: [
-  ['~/PDEBench/2D', 'diffre2d', ''],
+  #['~/PDEBench/2D', 'diffre2d', ''],
+  ['~/CPG1', 'heat', ''],
 #              ['~/PDEBench/2D/shallow-water', 'swe', ''],
 #              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
 #              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
