@@ -189,53 +189,28 @@ class Trainer:
         
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
-
-    def save_snapshots_target(self, x, save_dir):
-        #num_snapshots = x.shape[0]
-        num_channels = x.shape[0]
-        #print(f"x.shape: {x.shape}")
-        #for i in range(num_snapshots):
-        for j in range(num_channels):
-                plt.figure(figsize=(6, 6))
-                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
-                variable_slice = x[j]  # Shape should be (128, 128)
-                #print(f"Shape of variable_slice: {variable_slice.shape}")
-                plt.imshow(variable_slice, cmap="viridis", origin="lower")
-                plt.title(f"Snapshot, Predicted Variable {j+1}")
-                plt.colorbar()
-                plt.axis("off")
-                filename = os.path.join(save_dir, f"snapshot_variable_{j+1}.png")
-                plt.savefig(filename, dpi=300)
-                plt.close()
-
-    def save_snapshots_y(self, x, save_dir):
-        num_snapshots = x.shape[0]
-        num_channels = x.shape[1]
-        #print(f"x.shape: {x.shape}")
-        for i in range(num_snapshots):
-            for j in range(num_channels):
-                plt.figure(figsize=(6, 6))
-                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
-                variable_slice = x[i, j]  # Shape should be (128, 128)
-                #print(f"Shape of variable_slice: {variable_slice.shape}")
-                plt.imshow(variable_slice, cmap="viridis", origin="lower")
-                plt.title(f"Snapshot {i+1}, Predicted Variable {j+1}")
-                plt.colorbar()
-                plt.axis("off")
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
-                plt.savefig(filename, dpi=300)
-                plt.close()
     
     def save_snapshots(self, x, save_dir):
-        x = x.squeeze(1) 
-        num_snapshots = x.shape[0]
-        num_channels = x.shape[1]
+        num = len(x.shape)
+        if num==5:
+            x = x.squeeze(1)
+        elif num == 3:
+            num_snapshots = 1 
+        
+        if num > 3:
+            num_snapshots = x.shape[0]
+            num_channels = x.shape[1]
+        else:
+            num_channels = x.shape[0]
         #print(f"x.shape: {x.shape}")
         for i in range(num_snapshots):
             for j in range(num_channels):
                 plt.figure(figsize=(6, 6))
                 #plt.imshow(x[i, j], cmap="viridis", origin="lower")
-                variable_slice = x[i, j]  # Shape should be (128, 128)
+                if num > 3:
+                    variable_slice = x[i, j]  # Shape should be (128, 128)
+                else:
+                    variable_slice = x[j]
                 #print(f"Shape of variable_slice: {variable_slice.shape}")
                 plt.imshow(variable_slice, cmap="viridis", origin="lower")
                 plt.title(f"Snapshot {i+1}, Variable {j+1}")
@@ -245,38 +220,10 @@ class Trainer:
                 plt.savefig(filename, dpi=300)
                 plt.close()
 
-    def save_snapshots_vtk_y(self, x, save_dir):
-        #x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
-        #prinr("x.shape=",x.shape)
-        num_snapshots, num_channels, nx, ny = x.shape
-        #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
-
-        for i in range(num_snapshots):
-            for j in range(num_channels):
-                variable_slice = x[i, j].cpu().numpy()  # Convert to numpy array, shape (128, 128)
-                #print(f"variable_slice.shape before flattening: {variable_slice.shape}")
-
-                if variable_slice.size != nx * ny:
-                    print(f"Warning: Mismatch in size for snapshot {i+1}, variable {j+1}.")
-                    print(f"Expected size: {nx * ny}, Actual size: {variable_slice.size}")
-                    variable_slice = variable_slice.flatten(order="F")  # Flatten in column-major order if needed
-
-                grid = pv.StructuredGrid()            
-                x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx+1, endpoint=True), np.linspace(0, ny , ny+1, endpoint=True), indexing='ij')
-                z_grid = np.zeros_like(x_grid)  # Single plane (for 2D data)
-                points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
-            
-                grid.points = points
-                grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
-                #print("grid dimensions=",grid.dimensions)
-                grid.cell_data["Variable"] = variable_slice.ravel(order="F")
-
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
-                grid.save(filename)
-                #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
-
     def save_snapshots_vtk(self, x, save_dir):
-        x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        num = len(x.shape)
+        if num ==5:
+            x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
         #prinr("x.shape=",x.shape)
         num_snapshots, num_channels, nx, ny = x.shape
         #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
@@ -306,6 +253,16 @@ class Trainer:
                 #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
                 
     def rollout_comp(self, model, dset, state_labels, ic_index, steps, device):
+        saveDirPlots = "plots/simulationPlots"
+        saveDirVTK = "plots/vtkSnapshots"
+        saveDirPredictedPlots = "plots/predictedPlots"
+        saveDirPredictedVTK = "plots/vtkPredicted"
+        saveDirTargetPlots = "plots/targetPlots"
+        os.makedirs(saveDirPlots, exist_ok=True)
+        os.makedirs(saveDirVTK, exist_ok=True)
+        os.makedirs(saveDirPredictedPlots, exist_ok=True)
+        os.makedirs(saveDirPredictedVTK, exist_ok=True)
+        os.makedirs(saveDirTargetPlots, exist_ok=True)
         
         if not model:
             model = self.model
@@ -322,41 +279,35 @@ class Trainer:
             x = torch.as_tensor(x).to(device).unsqueeze(1) #transpose(0, 1)
             bcs = torch.as_tensor(bcs).unsqueeze(0).to(device)
 
-            save_dir="plots"
-            os.makedirs(save_dir, exist_ok=True)
-            self.save_snapshots(x.cpu(), save_dir)
-
-            save_dir = "vtk_snapshots"
-            os.makedirs(save_dir, exist_ok=True)
-            self.save_snapshots_vtk(x, save_dir)
+            self.save_snapshots(x.cpu(), saveDirPlots)
+            self.save_snapshots_vtk(x, saveDirVTK)
             
             for i in range(1, steps+1):
                 #print(x.shape, state_labels.shape, bcs.shape)
                 #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
                 pred = model(x,  state_labels.to(device), bcs.to(device))
                 
-                save_dir="predictedPlots"
-                os.makedirs(save_dir, exist_ok=True)
-                self.save_snapshots_y(pred.cpu(), save_dir)
+                saveDirPredictedPlotsNew = os.path.join(saveDirPredictedPlots, f"prediction_{i}")
+                saveDirPredictedVTKNew = os.path.join(saveDirPredictedVTK, f"prediction_{i}")
+                os.makedirs(saveDirPredictedPlotsNew, exist_ok=True)
+                os.makedirs(saveDirPredictedVTKNew, exist_ok=True)
+                self.save_snapshots(pred.cpu(), saveDirPredictedPlotsNew)
+                self.save_snapshots_vtk(pred, saveDirPredictedVTKNew)
                 
-                save_dir = "predicted_vtk_snapshots"
-                os.makedirs(save_dir, exist_ok=True)
-                self.save_snapshots_vtk_y(pred, save_dir)
-                
-                #save_dir="targetPlots"
+                saveDirTargetPlotsNew = os.path.join(saveDirTargetPlots, f"target_{i}")
+                os.makedirs(saveDirTargetPlotsNew, exist_ok=True)
+                self.save_snapshots(targets[-1].cpu(), saveDirTargetPlotsNew)
+                #print("targets[-1].shape=",targets[-1].shape)
                 #os.makedirs(save_dir, exist_ok=True)
                 #self.save_snapshots_y(targets.cpu(), save_dir)
                 #print("targets.shape=",targets.shape)
                 #print("Pred.shape=",pred.shape)
                 
-                save_dir = "targetPlots"
-                os.makedirs(save_dir, exist_ok=True)
-                for idx, target in enumerate(targets):
-                    print("idx=",idx," and target.shape=",target.shape)
-                    target_save_dir = os.path.join(save_dir, f"target_{idx+1}")
-                    os.makedirs(target_save_dir, exist_ok=True)
-                    self.save_snapshots_target(target.cpu(), target_save_dir)
-                
+                #for idx, target in enumerate(targets):
+                #    #print("idx=",idx," and target.shape=",target.shape," len=",len(target.shape))
+                #    target_save_dir = os.path.join(save_dir, f"target_{idx+1}")
+                #    os.makedirs(target_save_dir, exist_ok=True)
+                #    self.save_snapshots(target.cpu(), target_save_dir)
                 
                 preds.append(pred.squeeze(0))
                 normtype = 'minmax'
@@ -804,7 +755,7 @@ if __name__ == '__main__':
     plt.semilogy(loss, label='NRMSE')
     plt.semilogy(pers_loss, label='PERSISTENCE')
     plt.legend()
-    plt.savefig('semilogy_plot.png')
+    plt.savefig('plots/semilogy_plot.png')
 
         
     if params.log_to_screen:
