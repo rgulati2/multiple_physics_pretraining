@@ -32,6 +32,8 @@ def get_data_loader(params, paths, distributed, split='train', rank=0, train_off
                             tie_fields=params.tie_fields, use_all_fields=params.use_all_fields, enforce_max_steps=params.enforce_max_steps, 
                             train_offset=train_offset)
     # dataset = IncompNSDataset(paths[0], n_steps=params.n_steps, train_val_test=params.train_val_test, split=split)
+    #paths = [str(path) for path in paths]
+    #dataset = HeatDataset(paths, n_steps=params.n_steps, train_val_test=params.train_val_test, split=split)
     seed = torch.random.seed() if 'train'==split else 0
     if distributed:
         base_sampler = DistributedSampler

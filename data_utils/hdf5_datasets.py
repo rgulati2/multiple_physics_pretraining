@@ -121,8 +121,8 @@ class BaseHDF5DirectoryDataset(Dataset):
                             file_nsteps = steps - self.dt
                         else:
                             file_nsteps = self.n_steps
-                        self.file_nsteps.append(file_nsteps)
-                        self.file_steps.append(steps-file_nsteps-(self.dt-1))
+                        self.file_nsteps.append(file_nsteps) #16 for heat with 101 timesteps
+                        self.file_steps.append(steps-file_nsteps-(self.dt-1)) #101-16 = 85 for heat dataset
                         if self.split_level == 'sample':
                             # Compute which are in the given partition
                             partition = self.partition

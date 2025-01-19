@@ -12,7 +12,7 @@ basic_config: &basic_config
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
-  pretrained: !!bool False # Whether to load a pretrained model
+  pretrained: !!bool True # Whether to load a pretrained model
   pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B' #'~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
@@ -22,7 +22,7 @@ basic_config: &basic_config
   entity: 'entity'
   # Training settings
   drop_path: 0.1
-  batch_size: 1
+  batch_size: 10
   max_epochs: 1
   scheduler_epochs: -1
   epoch_size: 2000 # Artificial epoch size
@@ -33,7 +33,7 @@ basic_config: &basic_config
   learning_rate: -1 # -1 means use DAdapt
   weight_decay: 1e-3 
   n_states: 12   # Number of state variables across the datasets - Can be larger than real number and things will just go unused
-  state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure'] # Should be sorted
+  state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure', 'uh'] # Should be sorted
   dt: 1 # Striding of data - Not currently implemented > 1
   n_steps: 16 # Length of history to include in input
   enforce_max_steps: !!bool False # If false and n_steps > dataset steps, use dataset steps. Otherwise, raise Exception.
@@ -43,7 +43,7 @@ basic_config: &basic_config
   block_type: 'axial' # Which type of block to use - if axial, next two fields must be set to define axial ops
   time_type: 'attention' # Conditional on block type
   space_type: 'axial_attention' # Conditional on block type
-  tie_fields: !!bool False # Whether to use 1 embedding per field per data
+  tie_fields: !!bool True # Whether to use 1 embedding per field per data
   embed_dim: 768 # Dimension of internal representation - 192/384/768/1024 for Ti/S/B/L
   num_heads: 12 # Number of heads for attention - 3/6/12/16 for Ti/S/B/L
   processor_blocks: 12 # Number of transformer blocks in the backbone - 12/12/12/24 for Ti/S/B/L

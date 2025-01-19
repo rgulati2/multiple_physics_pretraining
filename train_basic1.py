@@ -190,6 +190,42 @@ class Trainer:
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
 
+    def save_snapshots_target(self, x, save_dir):
+        #num_snapshots = x.shape[0]
+        num_channels = x.shape[0]
+        #print(f"x.shape: {x.shape}")
+        #for i in range(num_snapshots):
+        for j in range(num_channels):
+                plt.figure(figsize=(6, 6))
+                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
+                variable_slice = x[j]  # Shape should be (128, 128)
+                #print(f"Shape of variable_slice: {variable_slice.shape}")
+                plt.imshow(variable_slice, cmap="viridis", origin="lower")
+                plt.title(f"Snapshot, Predicted Variable {j+1}")
+                plt.colorbar()
+                plt.axis("off")
+                filename = os.path.join(save_dir, f"snapshot_variable_{j+1}.png")
+                plt.savefig(filename, dpi=300)
+                plt.close()
+
+    def save_snapshots_y(self, x, save_dir):
+        num_snapshots = x.shape[0]
+        num_channels = x.shape[1]
+        #print(f"x.shape: {x.shape}")
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                plt.figure(figsize=(6, 6))
+                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
+                variable_slice = x[i, j]  # Shape should be (128, 128)
+                #print(f"Shape of variable_slice: {variable_slice.shape}")
+                plt.imshow(variable_slice, cmap="viridis", origin="lower")
+                plt.title(f"Snapshot {i+1}, Predicted Variable {j+1}")
+                plt.colorbar()
+                plt.axis("off")
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
+                plt.savefig(filename, dpi=300)
+                plt.close()
+    
     def save_snapshots(self, x, save_dir):
         x = x.squeeze(1) 
         num_snapshots = x.shape[0]
@@ -208,6 +244,36 @@ class Trainer:
                 filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
                 plt.savefig(filename, dpi=300)
                 plt.close()
+
+    def save_snapshots_vtk_y(self, x, save_dir):
+        #x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        #prinr("x.shape=",x.shape)
+        num_snapshots, num_channels, nx, ny = x.shape
+        #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
+
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                variable_slice = x[i, j].cpu().numpy()  # Convert to numpy array, shape (128, 128)
+                #print(f"variable_slice.shape before flattening: {variable_slice.shape}")
+
+                if variable_slice.size != nx * ny:
+                    print(f"Warning: Mismatch in size for snapshot {i+1}, variable {j+1}.")
+                    print(f"Expected size: {nx * ny}, Actual size: {variable_slice.size}")
+                    variable_slice = variable_slice.flatten(order="F")  # Flatten in column-major order if needed
+
+                grid = pv.StructuredGrid()            
+                x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx+1, endpoint=True), np.linspace(0, ny , ny+1, endpoint=True), indexing='ij')
+                z_grid = np.zeros_like(x_grid)  # Single plane (for 2D data)
+                points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+            
+                grid.points = points
+                grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
+                #print("grid dimensions=",grid.dimensions)
+                grid.cell_data["Variable"] = variable_slice.ravel(order="F")
+
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
+                grid.save(filename)
+                #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
 
     def save_snapshots_vtk(self, x, save_dir):
         x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
@@ -268,7 +334,30 @@ class Trainer:
                 #print(x.shape, state_labels.shape, bcs.shape)
                 #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
                 pred = model(x,  state_labels.to(device), bcs.to(device))
+                
+                save_dir="predictedPlots"
+                os.makedirs(save_dir, exist_ok=True)
+                self.save_snapshots_y(pred.cpu(), save_dir)
+                
+                save_dir = "predicted_vtk_snapshots"
+                os.makedirs(save_dir, exist_ok=True)
+                self.save_snapshots_vtk_y(pred, save_dir)
+                
+                #save_dir="targetPlots"
+                #os.makedirs(save_dir, exist_ok=True)
+                #self.save_snapshots_y(targets.cpu(), save_dir)
+                #print("targets.shape=",targets.shape)
                 #print("Pred.shape=",pred.shape)
+                
+                save_dir = "targetPlots"
+                os.makedirs(save_dir, exist_ok=True)
+                for idx, target in enumerate(targets):
+                    print("idx=",idx," and target.shape=",target.shape)
+                    target_save_dir = os.path.join(save_dir, f"target_{idx+1}")
+                    os.makedirs(target_save_dir, exist_ok=True)
+                    self.save_snapshots_target(target.cpu(), target_save_dir)
+                
+                
                 preds.append(pred.squeeze(0))
                 normtype = 'minmax'
                 nrmse_pred.append(self.normalized_rooted_mse(pred.to(device), targets[-1].to(device),normtype).cpu())
@@ -379,7 +468,7 @@ class Trainer:
             inp, file_index, field_labels, bcs, tar = map(lambda x: x.to(self.device), data) 
             #print("inp.shape=",inp.shape)
             #print("file_index=",file_index)
-            #print("field_labels=",field_labels)
+            print("field_labels=",field_labels)
             #print("bcs=",bcs)
             #print("tar.shape=",tar.shape)
             dset_type = self.train_dataset.sub_dsets[file_index[0]].type
@@ -706,8 +795,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    else:
-        trainer.train()
+    #else:
+    #    trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     #rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)

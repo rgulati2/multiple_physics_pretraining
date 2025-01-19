@@ -12,6 +12,10 @@ weights/
 #visualization folders
 plots
 vtk_snapshots
+predictedPlots
+predicted_vtk_snapshots
+targetPlots
+
 #Runs
 ~/
 
