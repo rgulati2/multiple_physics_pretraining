@@ -22,7 +22,7 @@ basic_config: &basic_config
   entity: 'entity'
   # Training settings
   drop_path: 0.1
-  batch_size: 10
+  batch_size: 1
   max_epochs: 1
   scheduler_epochs: -1
   epoch_size: 2000 # Artificial epoch size
@@ -43,7 +43,7 @@ basic_config: &basic_config
   block_type: 'axial' # Which type of block to use - if axial, next two fields must be set to define axial ops
   time_type: 'attention' # Conditional on block type
   space_type: 'axial_attention' # Conditional on block type
-  tie_fields: !!bool True # Whether to use 1 embedding per field per data
+  tie_fields: !!bool False # Whether to use 1 embedding per field per data
   embed_dim: 768 # Dimension of internal representation - 192/384/768/1024 for Ti/S/B/L
   num_heads: 12 # Number of heads for attention - 3/6/12/16 for Ti/S/B/L
   processor_blocks: 12 # Number of transformer blocks in the backbone - 12/12/12/24 for Ti/S/B/L
@@ -59,6 +59,7 @@ basic_config: &basic_config
   train_data_paths: [
  #['~/PDEBench/2D', 'diffre2d', ''],
  ['~/CPG1', 'heat', ''],
+ #['~/PDEBench/smallDR', 'diffre2d', ''],
 #              ['~/PDEBench/2D/shallow-water', 'swe', ''],
 #              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
 #              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
@@ -69,6 +70,7 @@ basic_config: &basic_config
   valid_data_paths: [
   #['~/PDEBench/2D', 'diffre2d', ''],
   ['~/CPG1', 'heat', ''],
+  #['~/PDEBench/smallDR', 'diffre2d', ''],
 #              ['~/PDEBench/2D/shallow-water', 'swe', ''],
 #              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
 #              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
