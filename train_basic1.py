@@ -442,7 +442,7 @@ class Trainer:
                 #print(f"Output shape: {output.shape}, Target shape: {tar.shape}")
                 residuals = output - tar
                 # Differentiate between log and accumulation losses
-                tar_norm = (1e-3 + tar.pow(2).mean(spatial_dims, keepdim=True))
+                tar_norm = (1e-4 + tar.pow(2).mean(spatial_dims, keepdim=True))
                 raw_loss = ((residuals).pow(2).mean(spatial_dims, keepdim=True) 
                          / tar_norm)
                 # Scale loss for accum
@@ -749,16 +749,16 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    else:
-        trainer.train()
+    #else:
+    #    trainer.train()
 
-    #preds, targets, loss, pers_loss = trainer.forecast()
+    preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
 
-    #plt.semilogy(loss, label='NRMSE')
-    #plt.semilogy(pers_loss, label='PERSISTENCE')
-    #plt.legend()
-    #plt.savefig('plots/semilogy_plot.png')
+    plt.semilogy(loss, label='NRMSE')
+    plt.semilogy(pers_loss, label='PERSISTENCE')
+    plt.legend()
+    plt.savefig('plots/semilogy_plot.png')
 
         
     if params.log_to_screen:
