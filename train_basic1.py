@@ -321,12 +321,12 @@ class Trainer:
 
     def forecast(self):
         k = 0
-        subset = self.valid_dataset.sub_dsets[k]
+        subset = self.train_dataset.sub_dsets[k]
         #print(subset.get_name(full_name=True))
         device = self.device
         indices = torch.as_tensor(self.valid_dataset.subset_dict[subset.get_name()]).to(device).unsqueeze(0)
         model = self.model
-        steps = 5
+        steps = 10
         return self.rollout_comp(model, subset, indices, 0 , steps, device)
         
     def restore_checkpoint(self, checkpoint_path):
@@ -400,6 +400,9 @@ class Trainer:
         self.model.train()
         self.epoch += 1
         #print("Epoch:",self.epoch)
+        
+        lr = self.optimizer.param_groups[0]['lr']
+        print(f"Epoch {self.epoch}, Learning Rate: {lr}")
         tr_time = 0
         data_time = 0
         data_start = time.time()
@@ -419,7 +422,7 @@ class Trainer:
             inp, file_index, field_labels, bcs, tar = map(lambda x: x.to(self.device), data) 
             #print("inp.shape=",inp.shape)
             #print("file_index=",file_index)
-            print("field_labels=",field_labels)
+            #print("field_labels=",field_labels)
             #print("bcs=",bcs)
             #print("tar.shape=",tar.shape)
             dset_type = self.train_dataset.sub_dsets[file_index[0]].type
@@ -439,7 +442,7 @@ class Trainer:
                 #print(f"Output shape: {output.shape}, Target shape: {tar.shape}")
                 residuals = output - tar
                 # Differentiate between log and accumulation losses
-                tar_norm = (1e-7 + tar.pow(2).mean(spatial_dims, keepdim=True))
+                tar_norm = (1e-3 + tar.pow(2).mean(spatial_dims, keepdim=True))
                 raw_loss = ((residuals).pow(2).mean(spatial_dims, keepdim=True) 
                          / tar_norm)
                 # Scale loss for accum
@@ -693,7 +696,7 @@ if __name__ == '__main__':
         dist.init_process_group("nccl")
         torch.cuda.set_device(local_rank) # Torch docs recommend just using device, but I had weird memory issues without setting this.
     device = torch.device(local_rank) if torch.cuda.is_available() else torch.device("cpu")
-    print(params.use_ddp)
+    print("Using Distributed Data Parallelism:",params.use_ddp)
     # Modify params
     params['batch_size'] = int(params.batch_size//world_size)
     params['startEpoch'] = 0
@@ -749,13 +752,13 @@ if __name__ == '__main__':
     else:
         trainer.train()
 
-    preds, targets, loss, pers_loss = trainer.forecast()
-    #rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
+    #preds, targets, loss, pers_loss = trainer.forecast()
+    ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
 
-    plt.semilogy(loss, label='NRMSE')
-    plt.semilogy(pers_loss, label='PERSISTENCE')
-    plt.legend()
-    plt.savefig('plots/semilogy_plot.png')
+    #plt.semilogy(loss, label='NRMSE')
+    #plt.semilogy(pers_loss, label='PERSISTENCE')
+    #plt.legend()
+    #plt.savefig('plots/semilogy_plot.png')
 
         
     if params.log_to_screen:

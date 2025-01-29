@@ -187,8 +187,10 @@ class BaseHDF5DirectoryDataset(Dataset):
         # print('sample from:', self.files_paths[file_idx])
         nsteps = self.file_nsteps[file_idx] # Number of steps per sample in given file
         local_idx = index - max(self.offsets[file_idx], 0) # First offset is -1
+        #print("local_idx=",local_idx," and file_idx=",file_idx," and self.offsets[file_idx]=",self.split_offsets[file_idx]," and self.file_steps[file_idx]=",self.file_steps[file_idx])
         if self.split_level == 'sample':
             sample_idx = (local_idx + self.split_offsets[file_idx]) // self.file_steps[file_idx]
+            #print("sample_idx=",sample_idx)
         else:
             sample_idx = local_idx // self.file_steps[file_idx]
         time_idx = local_idx % self.file_steps[file_idx] 
@@ -434,4 +436,6 @@ class HeatDataset(BaseHDF5DirectoryDataset):
         samples = list(file.keys())
         #testt = file[samples[sample_idx]]['data'][time_idx-n_steps*self.dt:time_idx+self.dt].transpose(0, 3, 1, 2)
         #print("test.shape=",testt.shape)
+        #print("samples=",samples," and sample_idx=",sample_idx)
+        #print("file[samples[0]]['data'].shape=",file[samples[0]]['data'][time_idx-n_steps*self.dt:time_idx+self.dt].transpose(0, 3, 1, 2).shape)
         return file[samples[sample_idx]]['data'][time_idx-n_steps*self.dt:time_idx+self.dt].transpose(0, 3, 1, 2)
