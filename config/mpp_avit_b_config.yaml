@@ -12,7 +12,7 @@ basic_config: &basic_config
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
-  pretrained: !!bool True # Whether to load a pretrained model
+  pretrained: !!bool False # Whether to load a pretrained model
   #pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B' #'~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest3a/training_checkpoints/ckpt.tar'
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
@@ -25,13 +25,13 @@ basic_config: &basic_config
   # Training settings
   drop_path: 0.1
   batch_size: 1
-  max_epochs: 100
+  max_epochs: 10
   scheduler_epochs: -1
   epoch_size: 2000 # Artificial epoch size, more like batch size
   rescale_gradients: !!bool False # Activate hook that scales block gradients to norm 1
   optimizer: 'adam' # adam, adan, whatever else i end up adding - adan did better on HP sweep
   scheduler: 'cosine' # Only cosine implemented
-  warmup_steps: 10 # Warmup when not using DAdapt
+  warmup_steps: 100 # Warmup when not using DAdapt
   learning_rate: -1 # -1 means use DAdapt
   weight_decay: 1e-3 
   n_states: 12   # Number of state variables across the datasets - Can be larger than real number and things will just go unused
@@ -91,20 +91,22 @@ finetune: &finetune
   max_epochs: 1
   train_val_test: [.8, .1, .1]
   accum_grad: 1
-  pretrained: !!bool True
+  pretrained: !!bool False
   group: 'debugging'
   pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   train_data_paths: [
-    ['~/CPG1', 'heat', ''],
+    #['~/CPG1', 'heat', ''],
+    ['~/Test4_100_Heat', 'heat', ''],
 #              ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
 	       #['~/PDEBench/2D', 'diffre2d', ''],
               ]
   valid_data_paths: [  # These are the same for all configs - uses split according to train_val_test
-  ['~/CPG1', 'heat', ''],
+  #['~/CPG1', 'heat', ''],
+  ['~/Test4_100_Heat', 'heat', ''],
   		    #['~/PDEBench/2D', 'diffre2d', ''],
 #               ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
               ]
-  embedding_offset: 8 # Number of fields in original model - FT fields start after this
+  embedding_offset: 0 # Number of fields in original model - FT fields start after this
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
   append_datasets: ['heat'] # List of datasets to append to the input/output projections for finetuning

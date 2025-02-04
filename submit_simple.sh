@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH --time=4:00:00
+#SBATCH --time=23:00:00
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-task=a40:1
-#SBATCH --job-name="demo"
-#SBATCH --output="MPP.%j.out"
+#SBATCH --gpus-per-task=1
+#SBATCH --job-name="MPP"
+#SBATCH --output="MPP-100H_nSteps_16_Finetune.%j.out"
 #SBATCH --account=garikipa_1359
 #SBATCH --export=ALL
 #SBATCH --mem=16G
@@ -18,4 +18,4 @@ module list
 nvidia-smi
 source /project/garikipa_1359/rahulgul/spatiotemporal/MPP/environment/bin/activate
 
-python train_basic.py --run_name "demo" --config "basic_config"  --yaml_config "./config/mpp_avit_b_config.yaml"  
+python train_basic1.py --run_name "Case5_100H_nSteps_16_Finetune" --config "basic_config"  --yaml_config "./config/mpp_avit_b_config.yaml"  
