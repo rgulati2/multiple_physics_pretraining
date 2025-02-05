@@ -750,8 +750,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    #else:
-        #trainer.train()
+    else:
+        trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
