@@ -190,37 +190,7 @@ class Trainer:
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
     
-    def save_snapshots(self, x, save_dir):
-        num = len(x.shape)
-        if num==5:
-            x = x.squeeze(1)
-        elif num == 3:
-            num_snapshots = 1 
-        
-        if num > 3:
-            num_snapshots = x.shape[0]
-            num_channels = x.shape[1]
-        else:
-            num_channels = x.shape[0]
-        #print(f"x.shape: {x.shape}")
-        for i in range(num_snapshots):
-            for j in range(num_channels):
-                plt.figure(figsize=(6, 6))
-                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
-                if num > 3:
-                    variable_slice = x[i, j]  # Shape should be (128, 128)
-                else:
-                    variable_slice = x[j]
-                #print(f"Shape of variable_slice: {variable_slice.shape}")
-                plt.imshow(variable_slice, cmap="viridis", origin="lower")
-                plt.title(f"Snapshot {i+1}, Variable {j+1}")
-                plt.colorbar()
-                plt.axis("off")
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
-                plt.savefig(filename, dpi=300)
-                plt.close()
-
-    def save_snapshots_vtk(self, x, save_dir):
+    def save_snapshots_vtk_archive(self, x, save_dir):
         num = len(x.shape)
         if num ==5:
             x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
@@ -251,6 +221,76 @@ class Trainer:
                 filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
                 grid.save(filename)
                 #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
+    
+    def save_snapshots(self, x, save_dir):
+        num = len(x.shape)
+        if num==5:
+            x = x.squeeze(1)
+        if num > 3:
+            num_snapshots = x.shape[0]
+            num_channels = x.shape[1]
+        else:
+            num_snapshots = 1 
+            num_channels = x.shape[0]
+        #print(f"x.shape: {x.shape}")
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                plt.figure(figsize=(6, 6))
+                #plt.imshow(x[i, j], cmap="viridis", origin="lower")
+                if num > 3:
+                    variable_slice = x[i, j]  # Shape should be (128, 128)
+                else:
+                    variable_slice = x[j]
+                #print(f"Shape of variable_slice: {variable_slice.shape}")
+                plt.imshow(variable_slice, cmap="viridis", origin="lower")
+                plt.title(f"Snapshot {i+1}, Variable {j+1}")
+                plt.colorbar()
+                plt.axis("off")
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
+                plt.savefig(filename, dpi=300)
+                plt.close()
+
+    def save_snapshots_vtk(self, x, save_dir):
+        num = len(x.shape)
+        if num ==5:
+            x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        
+        #print("x.shape=",x.shape)
+        if num > 3:
+            num_snapshots, num_channels, nx, ny = x.shape
+        elif num ==3:
+            num_snapshots =1
+            num_channels = x.shape[0]
+            nx = x.shape[1]
+            ny = x.shape[2]
+        #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
+
+        for i in range(num_snapshots):
+            for j in range(num_channels):
+                if num> 3:
+                    variable_slice = x[i, j].cpu().numpy()  # Convert to numpy array, shape (128, 128)
+                else:
+                    variable_slice = x[j].cpu().numpy()
+                #print(f"variable_slice.shape before flattening: {variable_slice.shape}")
+
+                if variable_slice.size != nx * ny:
+                    print(f"Warning: Mismatch in size for snapshot {i+1}, variable {j+1}.")
+                    print(f"Expected size: {nx * ny}, Actual size: {variable_slice.size}")
+                    variable_slice = variable_slice.flatten(order="F")  # Flatten in column-major order if needed
+
+                grid = pv.StructuredGrid()            
+                x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx+1, endpoint=True), np.linspace(0, ny , ny+1, endpoint=True), indexing='ij')
+                z_grid = np.zeros_like(x_grid)  # Single plane (for 2D data)
+                points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+            
+                grid.points = points
+                grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
+                #print("grid dimensions=",grid.dimensions)
+                grid.cell_data["Variable"] = variable_slice.ravel(order="F")
+
+                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
+                grid.save(filename)
+                #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
                 
     def rollout_comp(self, model, dset, state_labels, ic_index, steps, device):
         baseDir = self.params.save_plot_dir
@@ -259,11 +299,13 @@ class Trainer:
         saveDirPredictedPlots = baseDir + "predictedPlots"
         saveDirPredictedVTK = baseDir + "vtkPredicted"
         saveDirTargetPlots = baseDir + "targetPlots"
+        saveDirTargetVTK = baseDir + "vtkTarget"
         os.makedirs(saveDirPlots, exist_ok=True)
         os.makedirs(saveDirVTK, exist_ok=True)
         os.makedirs(saveDirPredictedPlots, exist_ok=True)
         os.makedirs(saveDirPredictedVTK, exist_ok=True)
         os.makedirs(saveDirTargetPlots, exist_ok=True)
+        os.makedirs(saveDirTargetVTK, exist_ok=True)
         
         if not model:
             model = self.model
@@ -296,8 +338,12 @@ class Trainer:
                 self.save_snapshots_vtk(pred, saveDirPredictedVTKNew)
                 
                 saveDirTargetPlotsNew = os.path.join(saveDirTargetPlots, f"target_{i}")
+                saveDirTargetVTKNew = os.path.join(saveDirTargetVTK, f"target_{i}")
                 os.makedirs(saveDirTargetPlotsNew, exist_ok=True)
+                os.makedirs(saveDirTargetVTKNew, exist_ok=True)
                 self.save_snapshots(targets[-1].cpu(), saveDirTargetPlotsNew)
+                self.save_snapshots_vtk(targets[-1], saveDirTargetVTKNew)
+                
                 #print("targets[-1].shape=",targets[-1].shape)
                 #os.makedirs(save_dir, exist_ok=True)
                 #self.save_snapshots_y(targets.cpu(), save_dir)
@@ -750,8 +796,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    else:
-        trainer.train()
+    #else:
+    #    trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
