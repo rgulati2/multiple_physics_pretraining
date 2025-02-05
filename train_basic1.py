@@ -253,11 +253,12 @@ class Trainer:
                 #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
                 
     def rollout_comp(self, model, dset, state_labels, ic_index, steps, device):
-        saveDirPlots = "plots/simulationPlots"
-        saveDirVTK = "plots/vtkSnapshots"
-        saveDirPredictedPlots = "plots/predictedPlots"
-        saveDirPredictedVTK = "plots/vtkPredicted"
-        saveDirTargetPlots = "plots/targetPlots"
+        baseDir = self.params.save_plot_dir
+        saveDirPlots = baseDir + "simulationPlots"
+        saveDirVTK = baseDir + "vtkSnapshots"
+        saveDirPredictedPlots = baseDir + "predictedPlots"
+        saveDirPredictedVTK = baseDir + "vtkPredicted"
+        saveDirTargetPlots = baseDir + "targetPlots"
         os.makedirs(saveDirPlots, exist_ok=True)
         os.makedirs(saveDirVTK, exist_ok=True)
         os.makedirs(saveDirPredictedPlots, exist_ok=True)
@@ -749,8 +750,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    else:
-        trainer.train()
+    #else:
+        #trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)
@@ -758,7 +759,10 @@ if __name__ == '__main__':
     plt.semilogy(loss, label='NRMSE')
     plt.semilogy(pers_loss, label='PERSISTENCE')
     plt.legend()
-    plt.savefig('plots/semilogy_plot.png')
+    baseDir = trainer.params.save_plot_dir
+    saveDirPlot = baseDir + "errorPlot"
+    os.makedirs(saveDirPlot, exist_ok=True)
+    plt.savefig(saveDirPlot+'/semilogy_plot.png')
 
         
     if params.log_to_screen:

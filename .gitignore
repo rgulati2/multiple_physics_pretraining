@@ -10,7 +10,7 @@ __pycache__/
 weights/
 
 #visualization folders
-plots
+plots*
 vtk_snapshots
 predictedPlots
 predicted_vtk_snapshots
