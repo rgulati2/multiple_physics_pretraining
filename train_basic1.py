@@ -190,39 +190,7 @@ class Trainer:
     def get_fields(valid_dataset, subset):
         return valid_dataset.subset_dict[subset.get_name()]
     
-    def save_snapshots_vtk_archive(self, x, save_dir):
-        num = len(x.shape)
-        if num ==5:
-            x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
-        #prinr("x.shape=",x.shape)
-        num_snapshots, num_channels, nx, ny = x.shape
-        #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
-
-        for i in range(num_snapshots):
-            for j in range(num_channels):
-                variable_slice = x[i, j].cpu().numpy()  # Convert to numpy array, shape (128, 128)
-                #print(f"variable_slice.shape before flattening: {variable_slice.shape}")
-
-                if variable_slice.size != nx * ny:
-                    print(f"Warning: Mismatch in size for snapshot {i+1}, variable {j+1}.")
-                    print(f"Expected size: {nx * ny}, Actual size: {variable_slice.size}")
-                    variable_slice = variable_slice.flatten(order="F")  # Flatten in column-major order if needed
-
-                grid = pv.StructuredGrid()            
-                x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx+1, endpoint=True), np.linspace(0, ny , ny+1, endpoint=True), indexing='ij')
-                z_grid = np.zeros_like(x_grid)  # Single plane (for 2D data)
-                points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
-            
-                grid.points = points
-                grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
-                #print("grid dimensions=",grid.dimensions)
-                grid.cell_data["Variable"] = variable_slice.ravel(order="F")
-
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
-                grid.save(filename)
-                #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
-    
-    def save_snapshots(self, x, save_dir):
+    def save_snapshots(self, x, save_dir, ind):
         num = len(x.shape)
         if num==5:
             x = x.squeeze(1)
@@ -246,11 +214,16 @@ class Trainer:
                 plt.title(f"Snapshot {i+1}, Variable {j+1}")
                 plt.colorbar()
                 plt.axis("off")
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.png")
+                if num == 5: #history
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{i+1}.png")
+                if num == 4: #prediction
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{ind}.png")
+                if num == 3: #target
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{ind}.png")
                 plt.savefig(filename, dpi=300)
                 plt.close()
 
-    def save_snapshots_vtk(self, x, save_dir):
+    def save_snapshots_vtk(self, x, save_dir, ind):
         num = len(x.shape)
         if num ==5:
             x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
@@ -287,8 +260,12 @@ class Trainer:
                 grid.dimensions = (nx+1, ny+1, 1)  # Set the grid dimensions
                 #print("grid dimensions=",grid.dimensions)
                 grid.cell_data["Variable"] = variable_slice.ravel(order="F")
-
-                filename = os.path.join(save_dir, f"snapshot_{i+1}_variable_{j+1}.vtk")
+                if num == 5: #history
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{i+1}.vtk")
+                if num == 4: #prediction
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{ind}.vtk")
+                if num == 3: #target
+                    filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{ind}.vtk")
                 grid.save(filename)
                 #print(f"Saved snapshot {i+1}_variable_{j+1} to {filename}")
                 
@@ -322,27 +299,27 @@ class Trainer:
             x = torch.as_tensor(x).to(device).unsqueeze(1) #transpose(0, 1)
             bcs = torch.as_tensor(bcs).unsqueeze(0).to(device)
 
-            self.save_snapshots(x.cpu(), saveDirPlots)
-            self.save_snapshots_vtk(x, saveDirVTK)
+            self.save_snapshots(x.cpu(), saveDirPlots, 0)
+            self.save_snapshots_vtk(x, saveDirVTK, 0)
             
             for i in range(1, steps+1):
                 #print(x.shape, state_labels.shape, bcs.shape)
                 #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
                 pred = model(x,  state_labels.to(device), bcs.to(device))
                 
-                saveDirPredictedPlotsNew = os.path.join(saveDirPredictedPlots, f"prediction_{i}")
-                saveDirPredictedVTKNew = os.path.join(saveDirPredictedVTK, f"prediction_{i}")
-                os.makedirs(saveDirPredictedPlotsNew, exist_ok=True)
-                os.makedirs(saveDirPredictedVTKNew, exist_ok=True)
-                self.save_snapshots(pred.cpu(), saveDirPredictedPlotsNew)
-                self.save_snapshots_vtk(pred, saveDirPredictedVTKNew)
+                #saveDirPredictedPlotsNew = os.path.join(saveDirPredictedPlots, f"prediction_{i}")
+                #saveDirPredictedVTKNew = os.path.join(saveDirPredictedVTK, f"prediction_{i}")
+                #os.makedirs(saveDirPredictedPlotsNew, exist_ok=True)
+                #os.makedirs(saveDirPredictedVTKNew, exist_ok=True)
+                self.save_snapshots(pred.cpu(), saveDirPredictedPlots, self.params.n_steps+i)
+                self.save_snapshots_vtk(pred, saveDirPredictedVTK, self.params.n_steps+i)
                 
-                saveDirTargetPlotsNew = os.path.join(saveDirTargetPlots, f"target_{i}")
-                saveDirTargetVTKNew = os.path.join(saveDirTargetVTK, f"target_{i}")
-                os.makedirs(saveDirTargetPlotsNew, exist_ok=True)
-                os.makedirs(saveDirTargetVTKNew, exist_ok=True)
-                self.save_snapshots(targets[-1].cpu(), saveDirTargetPlotsNew)
-                self.save_snapshots_vtk(targets[-1], saveDirTargetVTKNew)
+                #saveDirTargetPlotsNew = os.path.join(saveDirTargetPlots, f"target_{i}")
+                #saveDirTargetVTKNew = os.path.join(saveDirTargetVTK, f"target_{i}")
+                #os.makedirs(saveDirTargetPlotsNew, exist_ok=True)
+                #os.makedirs(saveDirTargetVTKNew, exist_ok=True)
+                self.save_snapshots(targets[-1].cpu(), saveDirTargetPlots, self.params.n_steps+i)
+                self.save_snapshots_vtk(targets[-1], saveDirTargetVTK, self.params.n_steps+i)
                 
                 #print("targets[-1].shape=",targets[-1].shape)
                 #os.makedirs(save_dir, exist_ok=True)
