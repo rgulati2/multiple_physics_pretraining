@@ -227,7 +227,6 @@ class Trainer:
         num = len(x.shape)
         if num ==5:
             x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
-        
         #print("x.shape=",x.shape)
         if num > 3:
             num_snapshots, num_channels, nx, ny = x.shape
@@ -237,7 +236,6 @@ class Trainer:
             nx = x.shape[1]
             ny = x.shape[2]
         #print(f"num_snapshots: {num_snapshots}, num_channels: {num_channels}, nx: {nx}, ny: {ny}")
-
         for i in range(num_snapshots):
             for j in range(num_channels):
                 if num> 3:
@@ -306,18 +304,10 @@ class Trainer:
                 #print(x.shape, state_labels.shape, bcs.shape)
                 #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
                 pred = model(x,  state_labels.to(device), bcs.to(device))
-                
-                #saveDirPredictedPlotsNew = os.path.join(saveDirPredictedPlots, f"prediction_{i}")
-                #saveDirPredictedVTKNew = os.path.join(saveDirPredictedVTK, f"prediction_{i}")
-                #os.makedirs(saveDirPredictedPlotsNew, exist_ok=True)
-                #os.makedirs(saveDirPredictedVTKNew, exist_ok=True)
+        
                 self.save_snapshots(pred.cpu(), saveDirPredictedPlots, self.params.n_steps+i)
                 self.save_snapshots_vtk(pred, saveDirPredictedVTK, self.params.n_steps+i)
                 
-                #saveDirTargetPlotsNew = os.path.join(saveDirTargetPlots, f"target_{i}")
-                #saveDirTargetVTKNew = os.path.join(saveDirTargetVTK, f"target_{i}")
-                #os.makedirs(saveDirTargetPlotsNew, exist_ok=True)
-                #os.makedirs(saveDirTargetVTKNew, exist_ok=True)
                 self.save_snapshots(targets[-1].cpu(), saveDirTargetPlots, self.params.n_steps+i)
                 self.save_snapshots_vtk(targets[-1], saveDirTargetVTK, self.params.n_steps+i)
                 
@@ -773,8 +763,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    #else:
-    #    trainer.train()
+    else:
+        trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)

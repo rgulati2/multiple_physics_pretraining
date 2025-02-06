@@ -12,7 +12,7 @@ basic_config: &basic_config
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
-  pretrained: !!bool True # Whether to load a pretrained model
+  pretrained: !!bool False # Whether to load a pretrained model
   #pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B' #'~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest3a/training_checkpoints/ckpt.tar'
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
