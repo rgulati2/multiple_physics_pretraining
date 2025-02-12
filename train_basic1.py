@@ -67,6 +67,8 @@ class Trainer:
         self.train_loss = nn.MSELoss()
         self.startEpoch = 0
         self.epoch = 0
+        self.epochs= []
+        self.validation_losses = []
         self.mp_type = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.half
 
         self.iters = 0
@@ -679,6 +681,8 @@ class Trainer:
             torch.cuda.empty_cache()
 
             if self.global_rank == 0:
+                self.epochs.append(epoch + 1)
+                self.validation_losses.append(valid_logs['valid_nrmse'])
                 if self.params.save_checkpoint:
                     self.save_checkpoint(self.params.checkpoint_path)
                 if epoch % self.params.checkpoint_save_interval == 0:
@@ -691,6 +695,21 @@ class Trainer:
                 self.single_print(f'Time for train {valid_start-start}. For valid: {post_start-valid_start}. For postprocessing:{cur_time-post_start}')
                 self.single_print('Time taken for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
                 self.single_print('Train loss: {}. Valid loss: {}'.format(train_logs['train_nrmse'], valid_logs['valid_nrmse']))
+        # Plot and save validation loss
+        if self.global_rank == 0:
+            plt.figure(figsize=(8, 6))
+            plt.plot(self.epochs, self.validation_losses, marker='o', linestyle='-', label='Validation Loss')
+            plt.xlabel("Epochs")
+            plt.ylabel("Validation Loss")
+            plt.title("Validation Loss vs Epoch")
+            plt.legend()
+            plt.grid()
+            baseDir = self.params.save_plot_dir
+            saveDirPlot = baseDir + "validationLossPlot"
+            os.makedirs(saveDirPlot, exist_ok=True)
+            plt.savefig(saveDirPlot+'/validation_loss_plot.png')
+            #plt.savefig(os.path.join(self.params.experiment_dir, "validation_loss_plot.png"))
+            plt.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
