@@ -343,7 +343,7 @@ class Trainer:
         device = self.device
         indices = torch.as_tensor(self.valid_dataset.subset_dict[subset.get_name()]).to(device).unsqueeze(0)
         model = self.model
-        steps = 10
+        steps = 250
         return self.rollout_comp(model, subset, indices, 0 , steps, device)
         
     def restore_checkpoint(self, checkpoint_path):
