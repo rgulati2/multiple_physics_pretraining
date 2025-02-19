@@ -23,6 +23,7 @@ DSET_NAME_TO_OBJECT = {
             'incompNS': IncompNSDataset,
             'diffre2d': DiffRe2DDataset,
             'compNS': CompNSDataset,
+            'elasticity': elasticity2DDataset,
             'heat': HeatDataset,
             }
 
