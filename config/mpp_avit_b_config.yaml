@@ -18,7 +18,7 @@ basic_config: &basic_config
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_el_t1a/' 
+  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_h_t11a/' 
   # wandb settings
   project: 'project' 
   group: 'debugging'
@@ -60,7 +60,7 @@ basic_config: &basic_config
   extended_names: !!bool False # Whether to use extended names - not currently implemented
   embedding_offset: 0  # Use when adding extra finetuning fields
   train_data_paths: [
-  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/test1', 'elasticity', ''],
+  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td1', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td2', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td5', 'heat', ''],
@@ -82,7 +82,7 @@ basic_config: &basic_config
   valid_data_paths: [
   #['~/PDEBench/2D', 'diffre2d', ''],
   #['~/CPG1', 'heat', ''],
- ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/test1', 'elasticity', ''],
+ ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td2', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td5', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td6', 'heat', ''],
@@ -107,16 +107,18 @@ finetune: &finetune
   accum_grad: 1
   pretrained: !!bool True
   group: 'debugging'
-  pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
+  pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   train_data_paths: [
+  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
     #['~/CPG1', 'heat', ''],
-    ['~/Test4_100_Heat', 'heat', ''],
+    #['~/Test4_100_Heat', 'heat', ''],
 #              ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
 	       #['~/PDEBench/2D', 'diffre2d', ''],
               ]
   valid_data_paths: [  # These are the same for all configs - uses split according to train_val_test
+  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
   #['~/CPG1', 'heat', ''],
-  ['~/Test4_100_Heat', 'heat', ''],
+  #['~/Test4_100_Heat', 'heat', ''],
   		    #['~/PDEBench/2D', 'diffre2d', ''],
 #               ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
               ]
