@@ -18,4 +18,4 @@ module list
 nvidia-smi
 source /project/garikipa_1359/rahulgul/spatiotemporal/MPP/environment/bin/activate
 
-python train_basic1.py --run_name "h_test11i" --config "basic_config"  --yaml_config "./config/mpp_avit_L_config.yaml"  
+python train_basic1.py --run_name "h_test11i" --config "basic_config"  --yaml_config "./config/mpp_avit_b_config.yaml"  

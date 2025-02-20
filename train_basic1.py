@@ -22,6 +22,7 @@ from torchinfo import summary
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import pyvista as pv
+import csv
 try:
     from data_utils.datasets import get_data_loader, DSET_NAME_TO_OBJECT
     from models.avit import build_avit
@@ -701,8 +702,12 @@ class Trainer:
         if self.global_rank == 0:
             plt.figure(figsize=(8, 6))
             #plt.plot(self.epochs, self.validation_losses, marker='o', linestyle='-', label='Validation Loss')
-            plt.plot([epoch.cpu().numpy() if isinstance(epoch, torch.Tensor) else epoch for epoch in self.epochs],[loss.cpu().numpy() if isinstance(loss, torch.Tensor) else loss for loss in self.validation_losses],marker='o', linestyle='-', label='Validation Loss')
-            plt.plot([epoch.cpu().numpy() if isinstance(epoch, torch.Tensor) else epoch for epoch in self.epochs],[loss.cpu().numpy() if isinstance(loss, torch.Tensor) else loss for loss in self.training_losses],marker='x', linestyle='-', label='Training Loss')
+            epochs = [epoch.cpu().numpy() if isinstance(epoch, torch.Tensor) else epoch for epoch in self.epochs]
+            validation_losses = [loss.cpu().numpy() if isinstance(loss, torch.Tensor) else loss for loss in self.validation_losses]
+            training_losses = [loss.cpu().numpy() if isinstance(loss, torch.Tensor) else loss for loss in self.training_losses]
+
+            plt.plot(epochs,validation_losses,marker='o', linestyle='-', label='Validation Loss')
+            plt.plot(epochs,training_losses,marker='x', linestyle='-', label='Training Loss')
 
             plt.xlabel("Epochs")
             plt.ylabel("Loss")
@@ -715,6 +720,14 @@ class Trainer:
             plt.savefig(saveDirPlot+'/validation_loss_plot.png')
             #plt.savefig(os.path.join(self.params.experiment_dir, "validation_loss_plot.png"))
             plt.close()
+            # Save as CSV
+            csv_file_path = os.path.join(saveDirPlot, "loss_data.csv")
+            with open(csv_file_path, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Epoch", "Validation Loss", "Training Loss"])
+                writer.writerows(zip(epochs, validation_losses, training_losses))
+
+            print(f"Loss data saved to {csv_file_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
