@@ -18,7 +18,7 @@ basic_config: &basic_config
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_h_t11a/' 
+  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_el_t14a/' 
   # wandb settings
   project: 'project' 
   group: 'debugging'
@@ -38,7 +38,7 @@ basic_config: &basic_config
   n_states: 12   # Number of state variables across the datasets - Can be larger than real number and things will just go unused
   state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure', 'uh'] # Should be sorted uh = Temperature state_variable
   dt: 1 # Striding of data - Not currently implemented > 1
-  n_steps: 16 # Length of history to include in input
+  n_steps: 64 # Length of history to include in input
   enforce_max_steps: !!bool False # If false and n_steps > dataset steps, use dataset steps. Otherwise, raise Exception.
   accum_grad: 5  # Real batch size is accum * batch_size, real steps/"epoch" is epoch_size / accum
   # Model settings
@@ -60,43 +60,22 @@ basic_config: &basic_config
   extended_names: !!bool False # Whether to use extended names - not currently implemented
   embedding_offset: 0  # Use when adding extra finetuning fields
   train_data_paths: [
-  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td1', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td2', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td5', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td6', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td9', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td10', 'heat', ''],  
+   ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
+   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
+  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''], 
  #['~/PDEBench/2D', 'diffre2d', ''],
  #['~/CPG1', 'heat', ''],
  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heat1000_t0-1', 'heat', ''],
  #['~/test2_DR', 'diffre2d', ''],
  #['~/PDEBench/smallDR', 'diffre2d', ''],
-#              ['~/PDEBench/2D/shallow-water', 'swe', ''],
-#              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
-#              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
-#               ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '512'],
-#              ['~/PDEBench/2D/CFD/2D_Train_Turb', compNS, ''],
-#              ['~/PDEBench/2D/diffusion-reaction', 'diffre2d', ''],
               ]
   valid_data_paths: [
+    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
+   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
   #['~/PDEBench/2D', 'diffre2d', ''],
   #['~/CPG1', 'heat', ''],
- ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td2', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td5', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td6', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td9', 'heat', ''],
- #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/testHeat1000/td10', 'heat', ''],
-  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heat1000_t0-1', 'heat', ''],
+ #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
   #['~/test2_DR', 'diffre2d', ''],
-  #['~/PDEBench/smallDR', 'diffre2d', ''],
-#              ['~/PDEBench/2D/shallow-water', 'swe', ''],
-#              ['~/PDEBench/2D/NS_incom', 'incompNS', ''],
-#              ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '128'],
-#               ['~/PDEBench/2D/CFD/2D_Train_Rand', compNS, '512'],
-#              ['~/PDEBench/2D/CFD/2D_Train_Turb', compNS, ''],
-#              ['~/PDEBench/2D/diffusion-reaction', 'diffre2d', ''],
               ]
   append_datasets: [] # List of datasets to append to the input/output projections for finetuning
 
@@ -109,23 +88,27 @@ finetune: &finetune
   group: 'debugging'
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   train_data_paths: [
-  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
+    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
+   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
+  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
     #['~/CPG1', 'heat', ''],
     #['~/Test4_100_Heat', 'heat', ''],
-#              ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
-	       #['~/PDEBench/2D', 'diffre2d', ''],
+    #['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
+	  #['~/PDEBench/2D', 'diffre2d', ''],
               ]
   valid_data_paths: [  # These are the same for all configs - uses split according to train_val_test
-  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
+  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
+   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
+  #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''],
   #['~/CPG1', 'heat', ''],
   #['~/Test4_100_Heat', 'heat', ''],
-  		    #['~/PDEBench/2D', 'diffre2d', ''],
-#               ['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
+  #['~/PDEBench/2D', 'diffre2d', ''],
+  #['/PDEBench/2D/CFD/2D_Train_Turb', 'compNS', 'M1.0'],
               ]
   embedding_offset: 10 # Number of fields in original model - FT fields start after this
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  append_datasets: ['heat'] # List of datasets to append to the input/output projections for finetuning
+  append_datasets: ['elasticity'] # List of datasets to append to the input/output projections for finetuning
   
 
 frozen: &frozen
