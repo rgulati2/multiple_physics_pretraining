@@ -226,8 +226,54 @@ class Trainer:
                     filename = os.path.join(save_dir, f"variable_{j+1}_snapshot_{ind}.png")
                 plt.savefig(filename, dpi=300)
                 plt.close()
-
+    
     def save_snapshots_vtk(self, x, save_dir, ind):
+        num = len(x.shape)
+        if num == 5:
+            x = x.squeeze(1)  # x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
+        if num > 3:
+            num_snapshots, num_channels, nx, ny = x.shape
+        elif num == 3:
+            num_snapshots = 1
+            num_channels = x.shape[0]
+            nx = x.shape[1]
+            ny = x.shape[2]
+        
+        for i in range(num_snapshots):
+            # Create grid for the current snapshot
+            grid = pv.StructuredGrid()
+            x_grid, y_grid = np.meshgrid(np.linspace(0, nx, nx + 1, endpoint=True), 
+                                        np.linspace(0, ny, ny + 1, endpoint=True), 
+                                        indexing='ij')
+            z_grid = np.zeros_like(x_grid)
+            points = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+            grid.points = points
+            grid.dimensions = (nx + 1, ny + 1, 1)
+            
+            # Add all variables to the grid
+            for j in range(num_channels):
+                if num > 3:
+                    variable_slice = x[i, j].cpu().numpy()
+                else:
+                    variable_slice = x[j].cpu().numpy()
+                
+                if variable_slice.size != nx * ny:
+                    variable_slice = variable_slice.flatten(order="F")
+                
+                grid.cell_data[f"Variable_{j+1}"] = variable_slice.ravel(order="F")
+            
+            # Determine the filename based on the input type
+            if num == 5:  # history
+                filename = os.path.join(save_dir, f"snapshot_{i+1}.vtk")
+            elif num == 4:  # prediction
+                filename = os.path.join(save_dir, f"snapshot_{ind}.vtk")
+            elif num == 3:  # target
+                filename = os.path.join(save_dir, f"snapshot_{ind}.vtk")
+            
+            # Save the grid with all variables
+            grid.save(filename)
+
+    def save_snapshots_vtk1(self, x, save_dir, ind):
         num = len(x.shape)
         if num ==5:
             x = x.squeeze(1)  #x (torch.Tensor): Tensor of shape (16, 2, 128, 128).
@@ -286,6 +332,17 @@ class Trainer:
         os.makedirs(saveDirTargetPlots, exist_ok=True)
         os.makedirs(saveDirTargetVTK, exist_ok=True)
         
+        saveDirErrorPlots = baseDir + "errorPlots"          # For 2D error plots
+        saveDirErrorVTK = baseDir + "vtkError"
+        saveDirErrorAnalysis = baseDir + "errorAnalysis"    # For L2 norm plot
+        os.makedirs(saveDirErrorPlots, exist_ok=True)
+        os.makedirs(saveDirErrorVTK, exist_ok=True)
+        os.makedirs(saveDirErrorAnalysis, exist_ok=True)
+        
+        l2_norms = []
+        timesteps = []
+        csv_path = os.path.join(saveDirErrorAnalysis, "l2_errors.csv")
+        
         if not model:
             model = self.model
         model.eval()
@@ -304,6 +361,8 @@ class Trainer:
             self.save_snapshots(x.cpu(), saveDirPlots, 0)
             self.save_snapshots_vtk(x, saveDirVTK, 0)
             
+            #l2_norms = []
+            
             for i in range(1, steps+1):
                 #print(x.shape, state_labels.shape, bcs.shape)
                 #print("x.shape=",x.shape,"state_lables.shape=",state_labels.shape,"state_labels=",state_labels,"bcs.shape=",bcs.shape,"bcs=",bcs)
@@ -314,6 +373,24 @@ class Trainer:
                 
                 self.save_snapshots(targets[-1].cpu(), saveDirTargetPlots, self.params.n_steps+i)
                 self.save_snapshots_vtk(targets[-1], saveDirTargetVTK, self.params.n_steps+i)
+                
+                #pred1 = pred.squeeze()
+                #error = torch.abs(targets[-1].cpu() - pred.cpu())  # Absolute difference
+                pred_clean = pred.squeeze(0).cpu()  # Remove batch dim: (2, 128, 128)
+                target = targets[-1].cpu()           # Shape: (2, 128, 128)
+                error = target - pred_clean          # Shape: (2, 128, 128)
+            
+                
+                self.save_snapshots(error, saveDirErrorPlots, self.params.n_steps + i)
+                self.save_snapshots_vtk(error, saveDirErrorVTK, self.params.n_steps+i)
+                
+                # Compute L2 norm
+                #l2_norm = torch.linalg.norm(error)  # L2 norm of the entire error tensor
+                #l2_norms.append(l2_norm)
+                l2_norm = torch.norm(error).item()  # sqrt(sum(error^2))
+                l2_norms.append(l2_norm)
+                timesteps.append(self.params.n_steps + i)
+                
                 
                 #print("targets[-1].shape=",targets[-1].shape)
                 #os.makedirs(save_dir, exist_ok=True)
@@ -335,6 +412,23 @@ class Trainer:
                     y = torch.as_tensor(dset[ic_index+i][-1])
                     targets.append(y)
                     x = torch.cat([x[1:], pred.unsqueeze(0)], 0)
+            
+            with open(csv_path, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["Timestep", "L2_Error"])
+                for t, err in zip(timesteps, l2_norms):
+                    writer.writerow([t, err])
+            
+            # Plot L2 norms
+            plt.figure(figsize=(10, 6))
+            plt.plot(timesteps, l2_norms, 'r-', marker='o')
+            plt.xlabel("Timestep")
+            plt.ylabel("L2 Error Norm")
+            plt.title("Prediction Error Evolution")
+            plt.grid(True)
+            plt.savefig(os.path.join(saveDirErrorAnalysis, "l2_error_plot.png"))
+            plt.close()
+            
             return list(map(lambda x: x.cpu(), preds)),list(map(lambda x: x.cpu(), targets)), nrmse_pred, nrmse_pers
 
     def forecast(self):
@@ -800,8 +894,8 @@ if __name__ == '__main__':
     if args.sweep_id and trainer.global_rank==0:
         print(args.sweep_id, trainer.params.entity, trainer.params.project)
         wandb.agent(args.sweep_id, function=trainer.train, count=1, entity=trainer.params.entity, project=trainer.params.project) 
-    else:
-        trainer.train()
+    #else:
+    #    trainer.train()
 
     preds, targets, loss, pers_loss = trainer.forecast()
     ###################rollout_comp(model=None, valid_dataset.sub_dsets[k], indices,0, steps=5, device=device)

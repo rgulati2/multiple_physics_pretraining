@@ -12,13 +12,14 @@ basic_config: &basic_config
   gradient_checkpointing: !!bool False # Whether to use gradient checkpointing - Slow, but lower memory
   exp_dir: '~/MPP' # Output path
   log_interval: 1 # How often to log - Don't think this is actually implemented
-  pretrained: !!bool False # Whether to load a pretrained model
+  pretrained: !!bool True # Whether to load a pretrained model
   #pretrained_ckpt_path: '~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B' #'~/MPP/basic_config/demo/training_checkpoints/ckpt.tar'
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest3a/training_checkpoints/ckpt.tar'
-  pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
+  #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
+  pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/elasticity/test14a/multiple_physics_pretraining/~/MPP/basic_config/el_test14a/training_checkpoints/best_ckpt.tar'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_el_t14a/' 
+  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_el_t12a/' 
   # wandb settings
   project: 'project' 
   group: 'debugging'
