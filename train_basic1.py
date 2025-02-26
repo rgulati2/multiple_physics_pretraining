@@ -433,7 +433,7 @@ class Trainer:
 
     def forecast(self):
         k = 0
-        subset = self.train_dataset.sub_dsets[k]
+        subset = self.valid_dataset.sub_dsets[k]
         #print(subset.get_name(full_name=True))
         device = self.device
         indices = torch.as_tensor(self.valid_dataset.subset_dict[subset.get_name()]).to(device).unsqueeze(0)
