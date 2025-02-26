@@ -23,8 +23,8 @@ DSET_NAME_TO_OBJECT = {
             'incompNS': IncompNSDataset,
             'diffre2d': DiffRe2DDataset,
             'compNS': CompNSDataset,
-            'elasticity': elasticity2DDataset,
-            #'heat': HeatDataset,
+            #'elasticity': elasticity2DDataset,
+            'heat': HeatDataset,
             }
 
 def get_data_loader(params, paths, distributed, split='train', rank=0, train_offset=0):
