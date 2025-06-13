@@ -11,11 +11,7 @@
 #SBATCH --mem=32G
 #SBATCH --open-mode=append
 
-#cd /project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/
-conda activate MPP3
 module list
-
 nvidia-smi
-source /project/garikipa_1359/rahulgul/spatiotemporal/MPP/environment/bin/activate
-
+source /project/garikipa_1359/rahulgul/spatiotemporal/2025/softwareInstall//pythonPath/bin/activate
 python train_basic1.py --run_name "c_test1a" --config "basic_config"  --yaml_config "./config/mpp_avit_b_config.yaml"  

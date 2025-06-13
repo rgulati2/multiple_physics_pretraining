@@ -17,10 +17,10 @@ basic_config: &basic_config
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest3a/training_checkpoints/ckpt.tar'
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/caseTest4/training_checkpoints/ckpt.tar_epoch10'
   #pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/elasticity/test14a/multiple_physics_pretraining/~/MPP/basic_config/el_test14a/training_checkpoints/best_ckpt.tar'
-  pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/heatNew/test11a/multiple_physics_pretraining/~/MPP/basic_config/h_test11a/training_checkpoints/best_ckpt.tar'
+  pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporalMay25/heat/test1f_ana2/~/MPP/basic_config/forecast_1f1/training_checkpoints/ckpt.tar_epoch100'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_c_t7a/' 
+  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_h_3b_1e-5/' 
   # wandb settings
   project: 'project' 
   group: 'debugging'
@@ -62,7 +62,7 @@ basic_config: &basic_config
   extended_names: !!bool False # Whether to use extended names - not currently implemented
   embedding_offset: 0  # Use when adding extra finetuning fields
   train_data_paths: [
-    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/currated/h_a', 'heat', ''], 
+    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_ana_f_1e-5', 'heat', ''], 
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/heatNew/heat1000', 'heat', ''], 
@@ -73,7 +73,7 @@ basic_config: &basic_config
  #['~/PDEBench/smallDR', 'diffre2d', ''],
               ]
   valid_data_paths: [
-     ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/currated/h_a', 'heat', ''], 
+     ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_ana_f_1e-5', 'heat', ''], 
     #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
   #['~/PDEBench/2D', 'diffre2d', ''],
