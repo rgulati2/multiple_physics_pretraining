@@ -25,7 +25,7 @@ basic_config: &basic_config
   # wandb settings
   project: 'spatiotemporal_solver' 
   group: 'accuracy_studies'
-  entity: 'context_length_16_finetuning'
+  entity: 'rahulgulati-university-of-southern-california'
   # Training settings
   drop_path: 0.1
   batch_size: 1
