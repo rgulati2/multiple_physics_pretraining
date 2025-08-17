@@ -21,9 +21,9 @@ basic_config: &basic_config
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   freeze_middle: !!bool False # Whether to freeze the middle layers of the model
   freeze_processor: !!bool False
-  save_plot_dir: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/plots_h_accuracy_1_ctxt_16_fine/' 
+  save_plot_dir: '/project2/garikipa_1359/rahulgul/spatiotemporalMay/output_plots/plots_h_accuracy_2_ctxt_2_fine/' 
   # wandb settings
-  project: 'spatiotemporal_solver' 
+  project: 'spatiotemporal_solver_2' 
   group: 'accuracy_studies'
   entity: 'rahulgulati-university-of-southern-california'
   # Training settings
@@ -31,7 +31,7 @@ basic_config: &basic_config
   batch_size: 1
   max_epochs: 101
   scheduler_epochs: -1
-  epoch_size: 2000 # Artificial epoch size, more like batch size
+  epoch_size: 200000000 # Artificial epoch size, more like batch size
   rescale_gradients: !!bool False # Activate hook that scales block gradients to norm 1
   optimizer: 'adam' # adam, adan, whatever else i end up adding - adan did better on HP sweep
   scheduler: 'cosine' # Only cosine implemented
@@ -41,7 +41,7 @@ basic_config: &basic_config
   n_states: 12   # Number of state variables across the datasets - Can be larger than real number and things will just go unused
   state_names: ['Pressure', 'Vx', 'Vy', 'Density',  'Vx', 'Vy', 'Density', 'Pressure', 'uh'] # Should be sorted uh = Temperature state_variable
   dt: 1 # Striding of data - Not currently implemented > 1
-  n_steps: 16 # Length of history to include in input
+  n_steps: 2 # Length of history to include in input
   enforce_max_steps: !!bool False # If false and n_steps > dataset steps, use dataset steps. Otherwise, raise Exception.
   accum_grad: 5  # Real batch size is accum * batch_size, real steps/"epoch" is epoch_size / accum
   # Model settings
@@ -56,14 +56,14 @@ basic_config: &basic_config
   patch_size: [16, 16] # Actually currently hardcoded at 16
   bias_type: 'rel'  # Options rel, continuous, none
   # Data settings
-  train_val_test: [.8, .1, .1]
+  train_val_test: [.889, .111, 0]
   augmentation: !!bool False # Augmentation not implemented
   use_all_fields: !!bool True # Prepopulate the field metadata dictionary from dictionary in datasets
   tie_batches: !!bool False # Force everything in batch to come from one dset
   extended_names: !!bool False # Whether to use extended names - not currently implemented
   embedding_offset: 0  # Use when adding extra finetuning fields
   train_data_paths: [
-    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_accuracy_1000_1', 'heat', ''], 
+    ['/project2/garikipa_1359/rahulgul/spatiotemporalMay/dataset/cxt2_1', 'heat', ''], 
     #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_ana_f_1e-5', 'heat', ''], 
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
@@ -75,7 +75,7 @@ basic_config: &basic_config
  #['~/PDEBench/smallDR', 'diffre2d', ''],
               ]
   valid_data_paths: [
-    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_accuracy_1000_1', 'heat', ''], 
+    ['/project2/garikipa_1359/rahulgul/spatiotemporalMay/dataset/cxt2_1', 'heat', ''], 
      #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_ana_f_1e-5', 'heat', ''], 
     #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
@@ -89,13 +89,13 @@ basic_config: &basic_config
 finetune: &finetune
   <<: *basic_config
   max_epochs: 101
-  train_val_test: [.8, .1, .1]
+  train_val_test: [.889, .111, 0]
   accum_grad: 1
   pretrained: !!bool True
   group: 'debugging'
   pretrained_ckpt_path: '/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/MPP/basic_config/demo/training_checkpoints/MPP_AViT_B'
   train_data_paths: [
-    ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_accuracy_1000_1', 'heat', ''], 
+    ['/project2/garikipa_1359/rahulgul/spatiotemporalMay/dataset/cxt2_1', 'heat', ''], 
     #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/currated/h_a', 'heat', ''],
     #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
@@ -106,7 +106,7 @@ finetune: &finetune
 	  #['~/PDEBench/2D', 'diffre2d', ''],
               ]
   valid_data_paths: [  # These are the same for all configs - uses split according to train_val_test
-  ['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/may2025/heat_accuracy_1000_1', 'heat', ''], 
+  ['/project2/garikipa_1359/rahulgul/spatiotemporalMay/dataset/cxt2_1', 'heat', ''], 
   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/currated/h_a', 'heat', ''],
   #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity1000_shear_bending', 'elasticity', ''],  
    #['/project/garikipa_1359/rahulgul/spatiotemporal/MPP1/multiple_physics_pretraining/~/elasticity/elasticity2000_shear_bending_dbc', 'elasticity', ''],  
