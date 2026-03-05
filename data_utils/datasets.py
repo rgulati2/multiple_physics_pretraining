@@ -1,5 +1,5 @@
 """ 
-Remember to parameterize the file paths eventually
+Remember to parameterize the file paths eventually.
 """
 import torch
 import torch.nn
