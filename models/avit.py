@@ -55,7 +55,7 @@ class AViT(nn.Module):
         self.debed = hMLP_output(patch_size=patch_size, embed_dim=embed_dim, out_chans=n_states)
 
     def expand_projections(self, expansion_amount):
-        """ Appends addition embeddings for finetuning on new data """
+        """ Appends addition embeddings for finetuning on new data  """
         with torch.no_grad():
             # Expand input projections
             temp_space_bag = SubsampledLinear(dim_in = self.space_bag.dim_in + expansion_amount, dim_out=self.space_bag.dim_out)
