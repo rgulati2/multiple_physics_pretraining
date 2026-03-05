@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --time=47:00:00
+#SBATCH --time=47:23:00
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
