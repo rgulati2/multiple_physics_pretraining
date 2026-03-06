@@ -2,7 +2,7 @@ from ruamel.yaml import YAML
 import logging
 
 class YParams():
-  """ Yaml file parser """
+  """ Yaml file parser  """
   def __init__(self, yaml_filename, config_name, print_params=False):
     self._yaml_filename = yaml_filename
     self._config_name = config_name
